@@ -3,27 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Business Website</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>HKR Corp | Precision. Innovation. Future.</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        
+        :root {
+            --bg-dark: #000000;
+            --accent-cyan: #00ffff;
+            --accent-magenta: #ff00ff;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: auto;
+        }
+
+        .scroll-section {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 10%;
+            pointer-events: none;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        .glass-nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            backdrop-filter: blur(5px);
+        }
+
+        .glass-text {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            line-height: 0.85;
+            mix-blend-mode: exclusion;
+        }
+
+        .sub-heading {
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .footer {
+            padding: 4rem 10%;
+            background: #050505;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 20;
+            position: relative;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to Our Business</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="projects.html">Projects</a></li>
-                <li><a href="contact.html">Contact Us</a></li>
-                <li><a href="privacy-policy.html">Privacy Policy</a></li>
-                <li><a href="cybersafety-policy.html">Cybersafety Policy</a></li>
-                <li><a href="legal.html">Legal</a></li>
-            </ul>
-        </nav>
-    </header>
-    <main>
-        <h2>Your Success is Our Mission</h2>
-        <p>Here at Our Business, we strive to deliver the best services to our clients...</p>
-    </main>
+
+    <nav class="glass-nav">
+        <div class="text-xl font-bold tracking-tighter interactive cursor-pointer">HKR CORP.</div>
+        <div class="hidden md:flex gap-10 text-xs tracking-widest uppercase interactive">
+            <a href="#" class="hover:text-cyan-400 transition">Solutions</a>
+            <a href="#" class="hover:text-cyan-400 transition">Technology</a>
+            <a href="#" class="hover:text-cyan-400 transition">About</a>
+            <a href="#" class="bg-white text-black px-4 py-2 hover:bg-cyan-400 transition">Contact</a>
+        </div>
+    </nav>
+
+    <div id="canvas-container"></div>
+
+    <!-- Hero Section -->
+    <section class="scroll-section">
+        <div class="max-w-4xl">
+            <p class="sub-heading">Establishing the standard</p>
+            <h1 class="glass-text">CHANGE THE<br>WORLD</h1>
+            <p class="mt-8 text-gray-400 max-w-lg leading-relaxed interactive">
+                HKR Corp is a global leader in high-dimensional infrastructure and systemic innovation. We build the architecture of tomorrow, today.
+            </p>
+            <div class="mt-10 flex gap-6 interactive">
+                <button class="border border-white px-8 py-4 text-xs tracking-widest uppercase hover:bg-white hover:text-black transition">Explore Core</button>
+                <button class="text-xs tracking-widest uppercase flex items-center gap-2 group">
+                    View Systems <span class="group-hover:translate-x-2 transition">→</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="scroll-section">
+        <div class="grid md:grid-cols-3 gap-6 interactive">
+            <div class="card">
+                <div class="text-cyan-400 text-xs mb-4 tracking-widest">01 / QUANTUM</div>
+                <h3 class="text-2xl font-bold mb-4">Infrastructure</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Developing decentralized frameworks that support the next generation of global financial and data systems.</p>
+            </div>
+            <div class="card">
+                <div class="text-magenta-400 text-xs mb-4 tracking-widest" style="color:#ff00ff">02 / KINETIC</div>
+                <h3 class="text-2xl font-bold mb-4">Intelligence</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">AI-driven predictive modeling for complex industrial ecosystems and logistics management.</p>
+            </div>
+            <div class="card">
+                <div class="text-gray-400 text-xs mb-4 tracking-widest">03 / GLOBAL</div>
+                <h3 class="text-2xl font-bold mb-4">Security</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Military-grade encryption and physical-digital hybrid protection for sovereign assets.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact/CTA Section -->
+    <section class="scroll-section items-center text-center">
+        <div class="max-w-2xl interactive">
+            <h2 class="text-5xl font-black mb-6 tracking-tighter">READY TO UPGRADE?</h2>
+            <p class="text-gray-400 mb-10">Join the network of elite partners shaping the 22nd century infrastructure.</p>
+            <input type="email" placeholder="ENTER SYSTEM EMAIL" class="bg-transparent border-b border-gray-700 py-4 w-full text-center focus:outline-none focus:border-cyan-400 transition mb-8 uppercase text-xs tracking-widest">
+            <button class="bg-cyan-500 text-black font-bold px-12 py-5 tracking-widest hover:bg-white transition uppercase text-xs">Initialize Integration</button>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="flex flex-col md:flex-row justify-between gap-10">
+            <div>
+                <div class="text-2xl font-black tracking-tighter mb-4">HKR CORP.</div>
+                <p class="text-gray-600 text-sm">© 2026 HKR Global Holdings. <br>All Systems Operational.</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-10 text-xs tracking-widest text-gray-400">
+                <div class="flex flex-col gap-4">
+                    <span class="text-white">NETWORKS</span>
+                    <a href="#">Tokyo-01</a>
+                    <a href="#">New York Hub</a>
+                    <a href="#">London Core</a>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <span class="text-white">LEGAL</span>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Security</a>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <span class="text-white">CONNECT</span>
+                    <a href="#">Terminal</a>
+                    <a href="#">LinkedIn</a>
+                    <a href="#">Satellite</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let scene, camera, renderer, masterGroup, clock;
+        let isMouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0.5, targetRotationY = 0.5;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 6;
+
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                alpha: true 
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            masterGroup = new THREE.Group();
+            scene.add(masterGroup);
+
+            // Create Infinity Layers
+            const layerCount = 6;
+            const baseSize = 2.5;
+
+            for (let i = 0; i < layerCount; i++) {
+                const scale = Math.pow(0.75, i);
+                const size = baseSize * scale;
+                const geometry = new THREE.BoxGeometry(size, size, size);
+                
+                const opacity = i === 0 ? 0.3 : 0.3 / (i + 1);
+                
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: 0xffffff,
+                    metalness: 0.4,
+                    roughness: 0.05,
+                    transmission: 0.9,
+                    transparent: true,
+                    opacity: opacity,
+                    reflectivity: 1.0,
+                    side: THREE.DoubleSide,
+                    thickness: 0.5,
+                    ior: 1.4,
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                const edges = new THREE.EdgesGeometry(geometry);
+                const lineMat = new THREE.LineBasicMaterial({ 
+                    color: 0x333333,
+                    transparent: true,
+                    opacity: 0.4 / (i + 0.5)
+                });
+                const line = new THREE.LineSegments(edges, lineMat);
+                
+                mesh.add(line);
+                masterGroup.add(mesh);
+                
+                mesh.rotation.x = i * 0.1;
+                mesh.rotation.y = i * 0.1;
+            }
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+            scene.add(ambientLight);
+
+            const light1 = new THREE.PointLight(0x00ffff, 1.5, 20);
+            light1.position.set(5, 5, 5);
+            scene.add(light1);
+
+            const light2 = new THREE.PointLight(0xff00ff, 1.5, 20);
+            light2.position.set(-5, -5, 5);
+            scene.add(light2);
+
+            clock = new THREE.Clock();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            
+            // Allow interaction only on the canvas-container specifically
+            const container = document.getElementById('canvas-container');
+            container.addEventListener('mousedown', (e) => { isMouseDown = true; mouseX = e.clientX; mouseY = e.clientY; });
+            window.addEventListener('mouseup', () => isMouseDown = false);
+            window.addEventListener('mousemove', onMouseMove);
+            
+            animate();
+        }
+
+        function onMouseMove(event) {
+            if (isMouseDown) {
+                const deltaX = event.clientX - mouseX;
+                const deltaY = event.clientY - mouseY;
+                targetRotationY += deltaX * 0.01;
+                targetRotationX += deltaY * 0.01;
+                mouseX = event.clientX;
+                mouseY = event.clientY;
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Smooth rotation
+            masterGroup.rotation.y += (targetRotationY - masterGroup.rotation.y) * 0.05;
+            masterGroup.rotation.x += (targetRotationX - masterGroup.rotation.x) * 0.05;
+
+            const time = clock.getElapsedTime();
+            
+            // Scroll Reaction: Move cube based on scroll
+            const scrollY = window.scrollY;
+            masterGroup.position.y = (scrollY * 0.005);
+            masterGroup.position.x = Math.sin(scrollY * 0.002) * 1;
+            
+            masterGroup.children.forEach((child, index) => {
+                child.rotation.z = Math.sin(time * 0.2 + index) * 0.1;
+                const pulse = 1 + Math.sin(time * 0.5 + index) * 0.02;
+                child.scale.set(pulse, pulse, pulse);
+            });
+
+            if (!isMouseDown) {
+                targetRotationY += 0.003;
+                targetRotationX += 0.0015;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>
