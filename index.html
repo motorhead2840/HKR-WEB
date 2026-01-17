@@ -37,7 +37,7 @@
             position: relative;
             z-index: 10;
             min-height: 100vh;
-            display: none; /* Controlled by JS */
+            display: none; 
             flex-direction: column;
             padding: 120px 10% 80px;
             pointer-events: none;
@@ -121,19 +121,110 @@
             width: 100%;
         }
 
-        .footer {
-            padding: 4rem 10%;
-            background: #000;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            z-index: 20;
-            position: relative;
+        /* Full Screen Modal with 20px Margin */
+        #solution-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(15px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #222; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+        #solution-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            /* Full screen with 20px margin */
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            width: auto;
+            height: auto;
+            
+            background: #050505;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+            padding: 0;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            transform: scale(0.98);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        #solution-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Modal Internal Layout */
+        .modal-hero {
+            height: 50vh;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            padding: 4rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .modal-hero::after {
+            content: '';
+            position: absolute;
+            top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(to top, #050505, transparent);
+        }
+
+        .modal-body-content {
+            padding: 4rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease 0.2s;
+        }
+
+        #solution-modal.active .modal-body-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 4rem;
+        }
+
+        .detail-img {
+            width: 100%;
+            height: 300px;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Placeholder for S3 images */
+        .s3-placeholder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        .detail-img:hover .s3-placeholder {
+            opacity: 0.8;
+        }
 
         .btn-primary {
             background: white;
@@ -150,6 +241,40 @@
             background: var(--accent-cyan);
             letter-spacing: 0.4em;
         }
+        
+        .close-btn {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            z-index: 50;
+            mix-blend-mode: exclusion;
+            cursor: pointer;
+            padding: 10px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            transition: all 0.3s;
+        }
+        .close-btn:hover {
+            background: white;
+            color: black;
+        }
+
+        .footer {
+            padding: 4rem 10%;
+            background: #000;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 20;
+            position: relative;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #222; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
     </style>
 </head>
 <body>
@@ -167,9 +292,18 @@
 
     <div id="canvas-container"></div>
 
+    <!-- POP-UP MODAL (20px Margin, Full Screen) -->
+    <div id="solution-modal" onclick="closeModal(event)">
+        <div class="modal-content interactive" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal()">Close Project</button>
+            <div id="modal-body">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- HOME PAGE -->
     <div id="page-home" class="page-content active">
-        <!-- Hero Section -->
         <div class="max-w-4xl min-h-[70vh] flex flex-col justify-center">
             <p class="sub-heading">Global Innovation Matrix</p>
             <h1 class="glass-text">CHANGE THE<br>WORLD</h1>
@@ -184,41 +318,37 @@
             </div>
         </div>
 
-        <!-- Featured Solutions Preview -->
         <div id="featured-work" class="mt-32 max-w-7xl w-full mx-auto">
             <h3 class="text-xs tracking-[0.5em] font-bold text-cyan-400 uppercase mb-12 border-b border-white/10 pb-4">Featured Solutions</h3>
             <div class="grid md:grid-cols-2 gap-8 interactive">
-                <div class="card cursor-pointer" onclick="showPage('solutions')">
+                <div class="card cursor-pointer" onclick="openSolution('dreamweaver')">
                     <div>
                         <div class="text-magenta-400 text-[10px] mb-4 tracking-[0.3em]" style="color:#ff00ff">LUXURY APPAREL</div>
                         <h3 class="text-xl font-bold mb-3">Dreamweaver</h3>
                         <p class="text-gray-500 text-xs leading-relaxed">Custom-tailored apparel that emphasizes a "sexy" state of mind with high-quality material integrity.</p>
                     </div>
                 </div>
-                <div class="card cursor-pointer" onclick="showPage('solutions')">
+                <div class="card cursor-pointer" onclick="openSolution('sagemaker')">
                     <div>
                         <div class="text-cyan-400 text-[10px] mb-4 tracking-[0.3em]">ED-TECH</div>
                         <h3 class="text-xl font-bold mb-3">Sagemaker</h3>
                         <p class="text-gray-500 text-xs leading-relaxed">Cloud-native unified learning ecosystem available across all scientific fields and platforms.</p>
                     </div>
                 </div>
-                <div class="card cursor-pointer" onclick="showPage('solutions')">
+                <div class="card cursor-pointer" onclick="openSolution('bornfree')">
                     <div>
                         <div class="text-gray-400 text-[10px] mb-4 tracking-[0.3em]">TOURISM</div>
                         <h3 class="text-xl font-bold mb-3">BornFree</h3>
                         <p class="text-gray-500 text-xs leading-relaxed">Streamlining tourism logistics as a comprehensive travel assistant to ensure enjoyable journeys.</p>
                     </div>
                 </div>
-                <div class="card cursor-pointer" onclick="showPage('solutions')">
+                <div class="card cursor-pointer" onclick="openSolution('cyphermonk')">
                     <div>
                         <div class="text-cyan-400 text-[10px] mb-4 tracking-[0.3em]">BLOCKCHAIN</div>
                         <h3 class="text-xl font-bold mb-3">CypherMonk</h3>
                         <p class="text-gray-500 text-xs leading-relaxed">Post-Quantum Cryptography and BTC cold storage via Icarus Cards for secure communications.</p>
                     </div>
                 </div>
-            </div>
-            <div class="mt-12 text-center">
-                <button onclick="showPage('solutions')" class="text-[10px] tracking-[0.3em] uppercase text-gray-400 hover:text-white transition interactive underline underline-offset-8">Explore Full Portfolio</button>
             </div>
         </div>
     </div>
@@ -230,63 +360,51 @@
                 <p class="sub-heading">Tactical Portfolios</p>
                 <h2 class="text-5xl font-black mb-6 tracking-tighter uppercase">Solutions</h2>
                 <p class="text-gray-400 leading-relaxed interactive text-lg">
-                    At the core of our company is a drive to solve complex problems through specialized expertise. Our portfolio ranges from luxury fashion to cutting-edge cryptography—crafting experiences that prioritize quality, security, and human-centric design.
+                    At the core of our company is a drive to solve complex problems through specialized expertise. Our portfolio showcases a diverse range of projects—from luxury fashion to cutting-edge cryptography.
                 </p>
             </div>
             
             <h3 class="text-xs tracking-[0.5em] font-bold text-cyan-400 uppercase mb-8 border-b border-white/10 pb-4">Our Project Portfolio</h3>
 
             <div class="grid md:grid-cols-2 gap-8 interactive">
-                <div class="card">
+                <!-- Dreamweaver -->
+                <div class="card cursor-pointer" onclick="openSolution('dreamweaver')">
                     <div>
                         <div class="text-magenta-400 text-[10px] mb-4 tracking-[0.3em]" style="color:#ff00ff">LUXURY APPAREL</div>
                         <h3 class="text-2xl font-bold mb-4">Dreamweaver</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-6">More than just fashion, Dreamweaver is about the psychology of confidence. We specialize in custom-tailored apparel that emphasizes a "sexy" state of mind without sacrificing ease of wear. Every garment is a testament to high-quality craftsmanship and material integrity.</p>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Emphasizing the psychology of confidence through custom-tailored apparel and material integrity.</p>
                     </div>
-                    <div class="flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
-                        <span>Psychological Comfort</span>
-                        <span class="text-white">/</span>
-                        <span>Premium Material</span>
-                    </div>
+                    <div class="text-[10px] text-cyan-400 uppercase tracking-widest">Click to Expand Portfolio →</div>
                 </div>
 
-                <div class="card">
+                <!-- Sagemaker -->
+                <div class="card cursor-pointer" onclick="openSolution('sagemaker')">
                     <div>
-                        <div class="text-cyan-400 text-[10px] mb-4 tracking-[0.3em]">ED-TECH ECOSYSTEM</div>
+                        <div class="text-cyan-400 text-[10px] mb-4 tracking-[0.3em]">ED-TECH</div>
                         <h3 class="text-2xl font-bold mb-4">Sagemaker</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Education should be accessible everywhere. Sagemaker is a cloud-native application available across web, mobile, and tablet platforms. It delivers expertly curated content across all scientific fields, intelligently adapting to students of any age or expertise level.</p>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">A unified learning ecosystem available across all platforms for curated scientific education.</p>
                     </div>
-                    <div class="flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
-                        <span>Cloud Native</span>
-                        <span class="text-white">/</span>
-                        <span>Adaptive AI</span>
-                    </div>
+                    <div class="text-[10px] text-cyan-400 uppercase tracking-widest">Click to Expand Portfolio →</div>
                 </div>
 
-                <div class="card">
+                <!-- BornFree -->
+                <div class="card cursor-pointer" onclick="openSolution('bornfree')">
                     <div>
-                        <div class="text-gray-400 text-[10px] mb-4 tracking-[0.3em]">TOURISM LOGISTICS</div>
+                        <div class="text-gray-400 text-[10px] mb-4 tracking-[0.3em]">TOURISM</div>
                         <h3 class="text-2xl font-bold mb-4">BornFree</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Travel is about freedom, and BornFree removes the friction. This cloud-based application serves as a comprehensive travel assistant, streamlining tourism logistics to ensure that the journey is as enjoyable as the destination.</p>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Intelligent tourism assistant streamlining logistics for seamless global travel experiences.</p>
                     </div>
-                    <div class="flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
-                        <span>Frictionless Travel</span>
-                        <span class="text-white">/</span>
-                        <span>Global Logistics</span>
-                    </div>
+                    <div class="text-[10px] text-cyan-400 uppercase tracking-widest">Click to Expand Portfolio →</div>
                 </div>
 
-                <div class="card">
+                <!-- CypherMonk -->
+                <div class="card cursor-pointer" onclick="openSolution('cyphermonk')">
                     <div>
-                        <div class="text-cyan-400 text-[10px] mb-4 tracking-[0.3em]">CYBER SECURITY</div>
+                        <div class="text-cyan-400 text-[10px] mb-4 tracking-[0.3em]">BLOCKCHAIN</div>
                         <h3 class="text-2xl font-bold mb-4">CypherMonk</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-6">The frontier of digital security. CypherMonk leads R&D in Post-Quantum Cryptography (PQC) and secure communication protocols, alongside blockchain applications for fintech and beyond. Our hardware store features Icarus Cards for BTC cold storage.</p>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Advanced cryptography R&D, PQC protocols, and dedicated Bitcoin cold storage hardware.</p>
                     </div>
-                    <div class="flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
-                        <span>PQC R&D</span>
-                        <span class="text-white">/</span>
-                        <span>BTC Cold Storage</span>
-                    </div>
+                    <div class="text-[10px] text-cyan-400 uppercase tracking-widest">Click to Expand Portfolio →</div>
                 </div>
             </div>
         </div>
@@ -300,14 +418,12 @@
             <div class="grid md:grid-cols-2 gap-12 items-center interactive">
                 <div class="space-y-6">
                     <p class="text-gray-400 leading-relaxed">
-                        Our proprietary <strong>HKR-Infinity Engine</strong> utilizes non-Euclidean data structures to compress information across multi-dimensional arrays, reducing traditional storage footprints by up to 90%.
+                        Our proprietary <strong>HKR-Infinity Engine</strong> utilizes non-Euclidean data structures.
                     </p>
                     <div class="border-l-2 border-cyan-400 pl-6 py-4">
                         <h4 class="text-xs tracking-[0.3em] font-bold text-cyan-400 uppercase mb-2">Core Processor</h4>
                         <p class="text-2xl font-black italic">HKR-Titan 9</p>
-                        <p class="text-gray-500 text-xs mt-2 uppercase">Sub-zero operating temperature / 4.2 Exaflops</p>
                     </div>
-                    <button class="btn-primary mt-4">Download Whitepaper</button>
                 </div>
                 <div class="bg-white/5 p-10 backdrop-blur-sm border border-white/10">
                     <h4 class="text-xs tracking-[0.3em] font-bold uppercase mb-6">System Status</h4>
@@ -316,16 +432,7 @@
                             <span>Uptime</span>
                             <span class="text-cyan-400">99.999%</span>
                         </div>
-                        <div class="w-full bg-white/10 h-1">
-                            <div class="bg-cyan-400 h-full w-[99%]"></div>
-                        </div>
-                        <div class="flex justify-between text-[10px] uppercase tracking-widest mt-6">
-                            <span>Network Load</span>
-                            <span class="text-magenta-400">Balanced</span>
-                        </div>
-                        <div class="w-full bg-white/10 h-1">
-                            <div class="bg-magenta-400 h-full w-[65%]"></div>
-                        </div>
+                        <div class="w-full bg-white/10 h-1"><div class="bg-cyan-400 h-full w-[99%]"></div></div>
                     </div>
                 </div>
             </div>
@@ -337,21 +444,9 @@
         <div class="max-w-4xl w-full mx-auto">
             <p class="sub-heading">Our Legacy</p>
             <h2 class="text-5xl font-black mb-10 tracking-tighter uppercase">Founded on Vision</h2>
-            <div class="space-y-8 interactive">
-                <p class="text-xl text-gray-300 font-light leading-relaxed">
-                    HKR Corp was established in 2012 by a collective of computational physicists and industrial designers who believed that technology should not just exist, but <strong>inspire</strong>.
-                </p>
-                <div class="grid md:grid-cols-2 gap-10 mt-12">
-                    <div>
-                        <h4 class="text-xs tracking-widest font-bold uppercase mb-4 text-cyan-400">Our Mission</h4>
-                        <p class="text-sm text-gray-500 leading-relaxed">To provide the foundational tools that allow humanity to transition from a physical-first existence to a digital-native future without sacrificing security or ethics.</p>
-                    </div>
-                    <div>
-                        <h4 class="text-xs tracking-widest font-bold uppercase mb-4 text-magenta-400">Global Presence</h4>
-                        <p class="text-sm text-gray-500 leading-relaxed">Headquartered in Tokyo, with operational hubs in Zurich, New York, and Singapore, we maintain a 24/7 presence across every major time zone.</p>
-                    </div>
-                </div>
-            </div>
+            <p class="text-xl text-gray-300 font-light leading-relaxed interactive">
+                HKR Corp was established in 2012 by a collective of computational physicists and industrial designers.
+            </p>
         </div>
     </div>
 
@@ -362,8 +457,6 @@
             <h2 class="text-5xl font-black mb-8 tracking-tighter uppercase">Get in Touch</h2>
             <form class="space-y-6">
                 <input type="text" placeholder="FULL NAME / ENTITY" class="w-full bg-transparent border-b border-white/20 py-4 focus:outline-none focus:border-cyan-400 transition text-xs tracking-widest uppercase">
-                <input type="email" placeholder="SECURE EMAIL" class="w-full bg-transparent border-b border-white/20 py-4 focus:outline-none focus:border-cyan-400 transition text-xs tracking-widest uppercase">
-                <textarea rows="3" placeholder="YOUR MESSAGE" class="w-full bg-transparent border-b border-white/20 py-4 focus:outline-none focus:border-cyan-400 transition text-xs tracking-widest uppercase"></textarea>
                 <button type="submit" class="btn-primary w-full mt-6">Initialize Communication</button>
             </form>
         </div>
@@ -375,24 +468,6 @@
                 <div class="text-2xl font-black tracking-tighter mb-4">HKR CORP.</div>
                 <p class="text-gray-600 text-[10px] uppercase tracking-widest">© 2026 HKR Global Holdings. <br>System Version 4.0.12</p>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-10 text-[10px] tracking-[0.3em] text-gray-500 font-bold">
-                <div class="flex flex-col gap-4">
-                    <span class="text-white">NETWORKS</span>
-                    <a href="#" class="hover:text-cyan-400">Tokyo-01</a>
-                    <a href="#" class="hover:text-cyan-400">NY Hub</a>
-                    <a href="#" class="hover:text-cyan-400">London Core</a>
-                </div>
-                <div class="flex flex-col gap-4">
-                    <span class="text-white">LEGAL</span>
-                    <a href="#" class="hover:text-cyan-400">Privacy</a>
-                    <a href="#" class="hover:text-cyan-400">Terms</a>
-                </div>
-                <div class="flex flex-col gap-4">
-                    <span class="text-white">CONNECT</span>
-                    <a href="#" class="hover:text-cyan-400">LinkedIn</a>
-                    <a href="#" class="hover:text-cyan-400">Satellite</a>
-                </div>
-            </div>
         </div>
     </footer>
 
@@ -403,11 +478,129 @@
         let targetRotationX = 0.5, targetRotationY = 0.5;
         let currentActivePage = 'home';
 
+        const solutionData = {
+            dreamweaver: {
+                title: "Dreamweaver",
+                category: "Luxury Women’s Apparel",
+                sub: "More than just fashion, Dreamweaver is about the psychology of confidence.",
+                detail: "We specialize in custom-tailored apparel that emphasizes a 'sexy' state of mind without sacrificing ease of wear. Every garment is a testament to high-quality craftsmanship and material integrity. Our approach integrates supply-chain precision with aesthetic fluidity to create pieces that are both timeless and structurally innovative.",
+                // To replace with S3 images, change the src attribute below
+                heroImg: "https://via.placeholder.com/1920x800/111/444?text=DREAMWEAVER_HERO_S3",
+                images: [
+                    "https://via.placeholder.com/600x400/222/555?text=FABRIC_DETAIL_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=DESIGN_PROCESS_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=RUNWAY_SHOT_S3"
+                ]
+            },
+            sagemaker: {
+                title: "Sagemaker",
+                category: "Unified Learning Ecosystem",
+                sub: "Education should be accessible everywhere.",
+                detail: "Sagemaker is a cloud-native application available across web, mobile, and tablet platforms. It delivers expertly curated content across all scientific fields, intelligently adapting to students of any age or expertise level through recursive feedback loops and AI-driven curriculum adjustment.",
+                heroImg: "https://via.placeholder.com/1920x800/111/0ff?text=SAGEMAKER_HERO_S3",
+                images: [
+                    "https://via.placeholder.com/600x400/222/555?text=DASHBOARD_UI_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=MOBILE_APP_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=AI_NODE_VISUAL_S3"
+                ]
+            },
+            bornfree: {
+                title: "BornFree",
+                category: "Intelligent Tourism Logistics",
+                sub: "Travel is about freedom, and BornFree removes the friction.",
+                detail: "This cloud-based application serves as a comprehensive travel assistant, streamlining tourism logistics to ensure that the journey is as enjoyable as the destination. We handle everything from global route optimization to real-time itinerary syncing using predictive traffic models.",
+                heroImg: "https://via.placeholder.com/1920x800/111/888?text=BORNFREE_HERO_S3",
+                images: [
+                    "https://via.placeholder.com/600x400/222/555?text=MAP_INTERFACE_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=TRAVEL_LOGISTICS_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=USER_JOURNEY_S3"
+                ]
+            },
+            cyphermonk: {
+                title: "CypherMonk",
+                category: "Advanced Cryptography & Blockchain",
+                sub: "The frontier of digital security.",
+                detail: "CypherMonk leads R&D in Post-Quantum Cryptography (PQC) and secure communication protocols. We develop blockchain applications for fintech and beyond. Our dedicated storefront features Icarus Cards (BTC cold storage) and professional mining hardware.",
+                heroImg: "https://via.placeholder.com/1920x800/111/0ff?text=CYPHERMONK_HERO_S3",
+                images: [
+                    "https://via.placeholder.com/600x400/222/555?text=HARDWARE_WALLET_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=ENCRYPTION_NODE_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=MINING_RIG_S3"
+                ]
+            }
+        };
+
+        function openSolution(id) {
+            const data = solutionData[id];
+            const modalBody = document.getElementById('modal-body');
+            
+            // Build image grid HTML
+            const imagesHtml = data.images.map(img => `
+                <div class="detail-img">
+                    <img src="${img}" alt="Project Detail" class="s3-placeholder">
+                </div>
+            `).join('');
+
+            modalBody.innerHTML = `
+                <div class="modal-hero" style="background-image: url('${data.heroImg}');">
+                    <div class="relative z-10 max-w-4xl">
+                        <p class="text-cyan-400 text-xs tracking-[0.5em] uppercase mb-4">${data.category}</p>
+                        <h2 class="text-5xl lg:text-8xl font-black tracking-tighter uppercase text-white mb-6" style="text-shadow: 0 10px 30px rgba(0,0,0,0.5);">${data.title}</h2>
+                    </div>
+                </div>
+                
+                <div class="modal-body-content">
+                    <div class="grid lg:grid-cols-12 gap-16">
+                        <div class="lg:col-span-4">
+                            <p class="text-2xl font-light text-white leading-relaxed border-l-2 border-cyan-400 pl-6">${data.sub}</p>
+                            <div class="mt-12 space-y-4">
+                                <div class="flex items-center gap-4 text-xs text-gray-500 uppercase tracking-widest">
+                                    <div class="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                                    <span>Status: Active</span>
+                                </div>
+                                <div class="flex items-center gap-4 text-xs text-gray-500 uppercase tracking-widest">
+                                    <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                                    <span>Version: 2.4.0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-8">
+                            <p class="text-gray-400 leading-loose text-lg">${data.detail}</p>
+                            
+                            <div class="image-grid">
+                                ${imagesHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('solution-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('solution-modal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.toggle('active', link.getAttribute('data-page') === pageId);
+            });
+            document.querySelectorAll('.page-content').forEach(page => page.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            currentActivePage = pageId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function scrollToFeatured() {
+            document.getElementById('featured-work').scrollIntoView({ behavior: 'smooth' });
+        }
+
         function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 6;
-
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
@@ -415,7 +608,6 @@
 
             masterGroup = new THREE.Group();
             scene.add(masterGroup);
-
             const layerCount = 6;
             const baseSize = 2.5;
 
@@ -423,30 +615,15 @@
                 const scale = Math.pow(0.75, i);
                 const size = baseSize * scale;
                 const geometry = new THREE.BoxGeometry(size, size, size);
-                const opacity = i === 0 ? 0.3 : 0.3 / (i + 1);
-                
                 const material = new THREE.MeshPhysicalMaterial({
-                    color: 0xffffff,
-                    metalness: 0.5,
-                    roughness: 0.1,
-                    transmission: 0.9,
-                    transparent: true,
-                    opacity: opacity,
-                    reflectivity: 1.0,
-                    side: THREE.DoubleSide,
-                    thickness: 0.5,
-                    ior: 1.45,
+                    color: 0xffffff, metalness: 0.5, roughness: 0.1, transmission: 0.9,
+                    transparent: true, opacity: i === 0 ? 0.3 : 0.3 / (i + 1), reflectivity: 1.0, side: THREE.DoubleSide,
+                    thickness: 0.5, ior: 1.45,
                 });
-
                 const mesh = new THREE.Mesh(geometry, material);
                 const edges = new THREE.EdgesGeometry(geometry);
-                const lineMat = new THREE.LineBasicMaterial({ 
-                    color: 0x333333,
-                    transparent: true,
-                    opacity: 0.5 / (i + 0.5)
-                });
+                const lineMat = new THREE.LineBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.5 / (i + 0.5) });
                 const line = new THREE.LineSegments(edges, lineMat);
-                
                 mesh.add(line);
                 masterGroup.add(mesh);
                 mesh.rotation.x = i * 0.1;
@@ -456,47 +633,20 @@
             const light1 = new THREE.PointLight(0x00ffff, 1.5, 20);
             light1.position.set(5, 5, 5);
             scene.add(light1);
-
             const light2 = new THREE.PointLight(0xff00ff, 1.5, 20);
             light2.position.set(-5, -5, 5);
             scene.add(light2);
 
             clock = new THREE.Clock();
-
-            const container = document.getElementById('canvas-container');
-            container.addEventListener('mousedown', (e) => { isMouseDown = true; mouseX = e.clientX; mouseY = e.clientY; });
-            window.addEventListener('mouseup', () => isMouseDown = false);
-            window.addEventListener('mousemove', onMouseMove);
             window.addEventListener('resize', onWindowResize);
-            
+            document.addEventListener('keydown', (e) => { if(e.key === "Escape") closeModal(); });
             animate();
-        }
-
-        function showPage(pageId) {
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.toggle('active', link.getAttribute('data-page') === pageId);
-            });
-
-            document.querySelectorAll('.page-content').forEach(page => {
-                page.classList.remove('active');
-            });
-            document.getElementById('page-' + pageId).classList.add('active');
-            
-            currentActivePage = pageId;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function scrollToFeatured() {
-            const el = document.getElementById('featured-work');
-            el.scrollIntoView({ behavior: 'smooth' });
         }
 
         function onMouseMove(event) {
             if (isMouseDown) {
-                const deltaX = event.clientX - mouseX;
-                const deltaY = event.clientY - mouseY;
-                targetRotationY += deltaX * 0.01;
-                targetRotationX += deltaY * 0.01;
+                targetRotationY += (event.clientX - mouseX) * 0.01;
+                targetRotationX += (event.clientY - mouseY) * 0.01;
                 mouseX = event.clientX;
                 mouseY = event.clientY;
             }
@@ -510,53 +660,27 @@
 
         function animate() {
             requestAnimationFrame(animate);
-
             masterGroup.rotation.y += (targetRotationY - masterGroup.rotation.y) * 0.05;
             masterGroup.rotation.x += (targetRotationX - masterGroup.rotation.x) * 0.05;
-
             const time = clock.getElapsedTime();
             
             let targetX = 0, targetY = 0, targetScale = 1;
-            
-            switch(currentActivePage) {
-                case 'home':
-                    // On home page, cube moves as user scrolls
-                    const scrollY = window.scrollY;
-                    targetX = Math.sin(scrollY * 0.002) * 1;
-                    targetY = scrollY * 0.003;
-                    targetScale = 1;
-                    break;
-                case 'solutions':
-                    targetX = 2.8; targetY = 0.5; targetScale = 0.7;
-                    break;
-                case 'tech':
-                    targetX = -2.5; targetY = -1; targetScale = 1.2;
-                    break;
-                case 'about':
-                    targetX = 3; targetY = -2; targetScale = 0.7;
-                    break;
-                case 'contact':
-                    targetX = 0; targetY = -3; targetScale = 0.5;
-                break;
+            if (currentActivePage === 'home') {
+                targetY = window.scrollY * 0.003;
+            } else if (currentActivePage === 'solutions') {
+                targetX = 2.8; targetY = 0.5; targetScale = 0.7;
             }
-
+            
             masterGroup.position.x += (targetX - masterGroup.position.x) * 0.05;
             masterGroup.position.y += (targetY - masterGroup.position.y) * 0.05;
-            const currentScale = masterGroup.scale.x;
-            const newScale = currentScale + (targetScale - currentScale) * 0.05;
-            masterGroup.scale.set(newScale, newScale, newScale);
+            const s = masterGroup.scale.x + (targetScale - masterGroup.scale.x) * 0.05;
+            masterGroup.scale.set(s, s, s);
 
             masterGroup.children.forEach((child, index) => {
                 child.rotation.z = Math.sin(time * 0.2 + index) * 0.1;
-                const pulse = 1 + Math.sin(time * 0.5 + index) * 0.02;
-                child.scale.set(pulse, pulse, pulse);
             });
 
-            if (!isMouseDown) {
-                targetRotationY += 0.003;
-                targetRotationX += 0.0015;
-            }
-
+            if (!isMouseDown) { targetRotationY += 0.003; targetRotationX += 0.0015; }
             renderer.render(scene, camera);
         }
 
