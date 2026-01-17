@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HKR Corp | The Architecture of Tomorrow</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        
+        :root {
+            --bg-dark: #000000;
+            --accent-cyan: #00ffff;
+            --accent-magenta: #ff00ff;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: auto;
+        }
+
+        .page-content {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: none; /* Controlled by JS */
+            flex-direction: column;
+            padding: 120px 10% 80px;
+            pointer-events: none;
+        }
+
+        .page-content.active {
+            display: flex;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        .glass-nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-text {
+            font-size: clamp(3rem, 12vw, 9rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            line-height: 0.85;
+            mix-blend-mode: exclusion;
+        }
+
+        .sub-heading {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6em;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            padding: 2.5rem;
+            border-radius: 2px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-5px);
+        }
+
+        .nav-link {
+            position: relative;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--accent-cyan);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+
+        .footer {
+            padding: 4rem 10%;
+            background: #000;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 20;
+            position: relative;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #222; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+        .btn-primary {
+            background: white;
+            color: black;
+            padding: 1rem 2.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-cyan);
+            letter-spacing: 0.4em;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="glass-nav">
+        <div class="text-xl font-black tracking-tighter interactive cursor-pointer" onclick="showPage('home')">HKR CORP.</div>
+        <div class="hidden md:flex gap-10 text-[10px] font-bold tracking-[0.3em] uppercase interactive">
+            <span class="nav-link active" data-page="home" onclick="showPage('home')">Home</span>
+            <span class="nav-link" data-page="solutions" onclick="showPage('solutions')">Solutions</span>
+            <span class="nav-link" data-page="tech" onclick="showPage('tech')">Technology</span>
+            <span class="nav-link" data-page="about" onclick="showPage('about')">About</span>
+            <button class="bg-white text-black px-4 py-2 hover:bg-cyan-400 transition ml-4" onclick="showPage('contact')">Connect</button>
+        </div>
+    </nav>
+
+    <div id="canvas-container"></div>
+
+    <!-- HOME PAGE -->
+    <div id="page-home" class="page-content active justify-center">
+        <div class="max-w-4xl">
+            <p class="sub-heading">Global Innovation Matrix</p>
+            <h1 class="glass-text">CHANGE THE<br>WORLD</h1>
+            <p class="mt-8 text-gray-400 max-w-lg leading-relaxed interactive text-sm">
+                HKR Corp architecting high-dimensional kinetic resources for the global digital economy. We bridge the gap between theoretical computing and physical infrastructure.
+            </p>
+            <div class="mt-10 flex flex-wrap gap-6 interactive">
+                <button onclick="showPage('solutions')" class="btn-primary">Our Solutions</button>
+                <button onclick="showPage('tech')" class="text-[10px] tracking-[0.3em] uppercase flex items-center gap-2 group hover:text-cyan-400 transition">
+                    Technical Core <span class="group-hover:translate-x-2 transition">→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOLUTIONS PAGE -->
+    <div id="page-solutions" class="page-content">
+        <div class="max-w-7xl w-full mx-auto">
+            <div class="max-w-3xl mb-16">
+                <p class="sub-heading">Tactical Portfolios</p>
+                <h2 class="text-5xl font-black mb-6 tracking-tighter uppercase">Solutions</h2>
+                <p class="text-gray-400 leading-relaxed interactive text-lg">
+                    At the core of our company is a drive to solve complex problems through specialized expertise. Our portfolio ranges from luxury fashion to cutting-edge cryptography—crafting experiences that prioritize quality, security, and human-centric design.
+                </p>
+            </div>
+            
+            <h3 class="text-xs tracking-[0.5em] font-bold text-cyan-400 uppercase mb-8 border-b border-white/10 pb-4">Our Project Portfolio</h3>
+
+            <div class="grid md:grid-cols-2 gap-8 interactive">
+                <!-- Dreamweaver -->
+                <div class="card">
+                    <div>
+                        <div class="text-magenta-400 text-[10px] mb-4 tracking-[0.3em]" style="color:#ff00ff">LUXURY APPAREL</div>
+                        <h3 class="text-2xl font-bold mb-4">Dreamweaver</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">More than just fashion, Dreamweaver is about the psychology of confidence. We specialize in custom-tailored apparel that emphasizes a "sexy" state of mind without sacrificing ease of wear. Every garment is a testament to high-quality craftsmanship and material integrity.</p>
+                    </div>
+                    <div class="flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
+                        <span>Psychological Comfort</span>
+                        <span class="text-white">/</span>
+                        <span>Premium Material</span>
+                    </div>
+                </div>
+
+                <!-- Sagemaker -->
+                <div class="card">
+                    <div>
+                        <div class="text-cyan-400 text-[10px] mb-4 tracking-[0.3em]">ED-TECH ECOSYSTEM</div>
+                        <h3 class="text-2xl font-bold mb-4">Sagemaker</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Education should be accessible everywhere. Sagemaker is a cloud-native application available across web, mobile, and tablet platforms. It delivers expertly curated content across all scientific fields, intelligently adapting to students of any age or expertise level.</p>
+                    </div>
+                    <div class="flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
+                        <span>Cloud Native</span>
+                        <span class="text-white">/</span>
+                        <span>Adaptive AI</span>
+                    </div>
+                </div>
+
+                <!-- BornFree -->
+                <div class="card">
+                    <div>
+                        <div class="text-gray-400 text-[10px] mb-4 tracking-[0.3em]">TOURISM LOGISTICS</div>
+                        <h3 class="text-2xl font-bold mb-4">BornFree</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Travel is about freedom, and BornFree removes the friction. This cloud-based application serves as a comprehensive travel assistant, streamlining tourism logistics to ensure that the journey is as enjoyable as the destination.</p>
+                    </div>
+                    <div class="flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
+                        <span>Frictionless Travel</span>
+                        <span class="text-white">/</span>
+                        <span>Global Logistics</span>
+                    </div>
+                </div>
+
+                <!-- CypherMonk -->
+                <div class="card">
+                    <div>
+                        <div class="text-cyan-400 text-[10px] mb-4 tracking-[0.3em]">CYBER SECURITY</div>
+                        <h3 class="text-2xl font-bold mb-4">CypherMonk</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">The frontier of digital security. CypherMonk leads R&D in Post-Quantum Cryptography (PQC) and secure communication protocols, alongside blockchain applications for fintech and beyond. Our hardware store features Icarus Cards for BTC cold storage.</p>
+                    </div>
+                    <div class="flex items-center gap-4 text-[10px] text-gray-500 uppercase tracking-widest">
+                        <span>PQC R&D</span>
+                        <span class="text-white">/</span>
+                        <span>BTC Cold Storage</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TECHNOLOGY PAGE -->
+    <div id="page-tech" class="page-content">
+        <div class="max-w-5xl w-full mx-auto">
+            <p class="sub-heading">Hardware & Logic</p>
+            <h2 class="text-5xl font-black mb-8 tracking-tighter uppercase">The Technology</h2>
+            <div class="grid md:grid-cols-2 gap-12 items-center interactive">
+                <div class="space-y-6">
+                    <p class="text-gray-400 leading-relaxed">
+                        Our proprietary <strong>HKR-Infinity Engine</strong> utilizes non-Euclidean data structures to compress information across multi-dimensional arrays, reducing traditional storage footprints by up to 90%.
+                    </p>
+                    <div class="border-l-2 border-cyan-400 pl-6 py-4">
+                        <h4 class="text-xs tracking-[0.3em] font-bold text-cyan-400 uppercase mb-2">Core Processor</h4>
+                        <p class="text-2xl font-black italic">HKR-Titan 9</p>
+                        <p class="text-gray-500 text-xs mt-2 uppercase">Sub-zero operating temperature / 4.2 Exaflops</p>
+                    </div>
+                    <button class="btn-primary mt-4">Download Whitepaper</button>
+                </div>
+                <div class="bg-white/5 p-10 backdrop-blur-sm border border-white/10">
+                    <h4 class="text-xs tracking-[0.3em] font-bold uppercase mb-6">System Status</h4>
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-[10px] uppercase tracking-widest">
+                            <span>Uptime</span>
+                            <span class="text-cyan-400">99.999%</span>
+                        </div>
+                        <div class="w-full bg-white/10 h-1">
+                            <div class="bg-cyan-400 h-full w-[99%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] uppercase tracking-widest mt-6">
+                            <span>Network Load</span>
+                            <span class="text-magenta-400">Balanced</span>
+                        </div>
+                        <div class="w-full bg-white/10 h-1">
+                            <div class="bg-magenta-400 h-full w-[65%]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT PAGE -->
+    <div id="page-about" class="page-content">
+        <div class="max-w-4xl w-full mx-auto">
+            <p class="sub-heading">Our Legacy</p>
+            <h2 class="text-5xl font-black mb-10 tracking-tighter uppercase">Founded on Vision</h2>
+            <div class="space-y-8 interactive">
+                <p class="text-xl text-gray-300 font-light leading-relaxed">
+                    HKR Corp was established in 2012 by a collective of computational physicists and industrial designers who believed that technology should not just exist, but <strong>inspire</strong>.
+                </p>
+                <div class="grid md:grid-cols-2 gap-10 mt-12">
+                    <div>
+                        <h4 class="text-xs tracking-widest font-bold uppercase mb-4 text-cyan-400">Our Mission</h4>
+                        <p class="text-sm text-gray-500 leading-relaxed">To provide the foundational tools that allow humanity to transition from a physical-first existence to a digital-native future without sacrificing security or ethics.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-xs tracking-widest font-bold uppercase mb-4 text-magenta-400">Global Presence</h4>
+                        <p class="text-sm text-gray-500 leading-relaxed">Headquartered in Tokyo, with operational hubs in Zurich, New York, and Singapore, we maintain a 24/7 presence across every major time zone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT PAGE -->
+    <div id="page-contact" class="page-content items-center text-center justify-center">
+        <div class="max-w-xl w-full interactive mx-auto">
+            <p class="sub-heading">Secure Connection</p>
+            <h2 class="text-5xl font-black mb-8 tracking-tighter uppercase">Get in Touch</h2>
+            <form class="space-y-6">
+                <input type="text" placeholder="FULL NAME / ENTITY" class="w-full bg-transparent border-b border-white/20 py-4 focus:outline-none focus:border-cyan-400 transition text-xs tracking-widest uppercase">
+                <input type="email" placeholder="SECURE EMAIL" class="w-full bg-transparent border-b border-white/20 py-4 focus:outline-none focus:border-cyan-400 transition text-xs tracking-widest uppercase">
+                <textarea rows="3" placeholder="YOUR MESSAGE" class="w-full bg-transparent border-b border-white/20 py-4 focus:outline-none focus:border-cyan-400 transition text-xs tracking-widest uppercase"></textarea>
+                <button type="submit" class="btn-primary w-full mt-6">Initialize Communication</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="flex flex-col md:flex-row justify-between gap-10 max-w-7xl mx-auto">
+            <div>
+                <div class="text-2xl font-black tracking-tighter mb-4">HKR CORP.</div>
+                <p class="text-gray-600 text-[10px] uppercase tracking-widest">© 2026 HKR Global Holdings. <br>System Version 4.0.12</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-10 text-[10px] tracking-[0.3em] text-gray-500 font-bold">
+                <div class="flex flex-col gap-4">
+                    <span class="text-white">NETWORKS</span>
+                    <a href="#" class="hover:text-cyan-400">Tokyo-01</a>
+                    <a href="#" class="hover:text-cyan-400">NY Hub</a>
+                    <a href="#" class="hover:text-cyan-400">London Core</a>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <span class="text-white">LEGAL</span>
+                    <a href="#" class="hover:text-cyan-400">Privacy</a>
+                    <a href="#" class="hover:text-cyan-400">Terms</a>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <span class="text-white">CONNECT</span>
+                    <a href="#" class="hover:text-cyan-400">LinkedIn</a>
+                    <a href="#" class="hover:text-cyan-400">Satellite</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let scene, camera, renderer, masterGroup, clock;
+        let isMouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0.5, targetRotationY = 0.5;
+        let currentActivePage = 'home';
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 6;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            masterGroup = new THREE.Group();
+            scene.add(masterGroup);
+
+            // Create Infinity Layers
+            const layerCount = 6;
+            const baseSize = 2.5;
+
+            for (let i = 0; i < layerCount; i++) {
+                const scale = Math.pow(0.75, i);
+                const size = baseSize * scale;
+                const geometry = new THREE.BoxGeometry(size, size, size);
+                const opacity = i === 0 ? 0.3 : 0.3 / (i + 1);
+                
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: 0xffffff,
+                    metalness: 0.5,
+                    roughness: 0.1,
+                    transmission: 0.9,
+                    transparent: true,
+                    opacity: opacity,
+                    reflectivity: 1.0,
+                    side: THREE.DoubleSide,
+                    thickness: 0.5,
+                    ior: 1.45,
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                const edges = new THREE.EdgesGeometry(geometry);
+                const lineMat = new THREE.LineBasicMaterial({ 
+                    color: 0x333333,
+                    transparent: true,
+                    opacity: 0.5 / (i + 0.5)
+                });
+                const line = new THREE.LineSegments(edges, lineMat);
+                
+                mesh.add(line);
+                masterGroup.add(mesh);
+                mesh.rotation.x = i * 0.1;
+                mesh.rotation.y = i * 0.1;
+            }
+
+            const light1 = new THREE.PointLight(0x00ffff, 1.5, 20);
+            light1.position.set(5, 5, 5);
+            scene.add(light1);
+
+            const light2 = new THREE.PointLight(0xff00ff, 1.5, 20);
+            light2.position.set(-5, -5, 5);
+            scene.add(light2);
+
+            clock = new THREE.Clock();
+
+            const container = document.getElementById('canvas-container');
+            container.addEventListener('mousedown', (e) => { isMouseDown = true; mouseX = e.clientX; mouseY = e.clientY; });
+            window.addEventListener('mouseup', () => isMouseDown = false);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('resize', onWindowResize);
+            
+            animate();
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.toggle('active', link.getAttribute('data-page') === pageId);
+            });
+
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById('page-' + pageId).classList.add('active');
+            
+            currentActivePage = pageId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function onMouseMove(event) {
+            if (isMouseDown) {
+                const deltaX = event.clientX - mouseX;
+                const deltaY = event.clientY - mouseY;
+                targetRotationY += deltaX * 0.01;
+                targetRotationX += deltaY * 0.01;
+                mouseX = event.clientX;
+                mouseY = event.clientY;
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            masterGroup.rotation.y += (targetRotationY - masterGroup.rotation.y) * 0.05;
+            masterGroup.rotation.x += (targetRotationX - masterGroup.rotation.x) * 0.05;
+
+            const time = clock.getElapsedTime();
+            
+            let targetX = 0, targetY = 0, targetScale = 1;
+            
+            switch(currentActivePage) {
+                case 'home':
+                    targetX = 0; targetY = 0; targetScale = 1;
+                    break;
+                case 'solutions':
+                    targetX = 2.8; targetY = 0.5; targetScale = 0.7;
+                    break;
+                case 'tech':
+                    targetX = -2.5; targetY = -1; targetScale = 1.2;
+                    break;
+                case 'about':
+                    targetX = 3; targetY = -2; targetScale = 0.7;
+                    break;
+                case 'contact':
+                    targetX = 0; targetY = -3; targetScale = 0.5;
+                break;
+            }
+
+            masterGroup.position.x += (targetX - masterGroup.position.x) * 0.05;
+            masterGroup.position.y += (targetY - masterGroup.position.y) * 0.05;
+            const currentScale = masterGroup.scale.x;
+            const newScale = currentScale + (targetScale - currentScale) * 0.05;
+            masterGroup.scale.set(newScale, newScale, newScale);
+
+            masterGroup.children.forEach((child, index) => {
+                child.rotation.z = Math.sin(time * 0.2 + index) * 0.1;
+                const pulse = 1 + Math.sin(time * 0.5 + index) * 0.02;
+                child.scale.set(pulse, pulse, pulse);
+            });
+
+            if (!isMouseDown) {
+                targetRotationY += 0.003;
+                targetRotationX += 0.0015;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
