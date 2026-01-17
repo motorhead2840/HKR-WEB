@@ -242,12 +242,12 @@
             letter-spacing: 0.4em;
         }
         
+        /* Updated Close Button Position */
         .close-btn {
-            position: fixed;
-            top: 40px;
-            right: 40px;
+            position: absolute;
+            top: 2rem;
+            left: 4rem; /* Aligned left to match content padding */
             z-index: 50;
-            mix-blend-mode: exclusion;
             cursor: pointer;
             padding: 10px 20px;
             border: 1px solid rgba(255,255,255,0.2);
@@ -257,10 +257,12 @@
             font-size: 0.7rem;
             letter-spacing: 0.2em;
             transition: all 0.3s;
+            color: white;
         }
         .close-btn:hover {
             background: white;
             color: black;
+            border-color: white;
         }
 
         .footer {
@@ -295,7 +297,7 @@
     <!-- POP-UP MODAL (20px Margin, Full Screen) -->
     <div id="solution-modal" onclick="closeModal(event)">
         <div class="modal-content interactive" onclick="event.stopPropagation()">
-            <button class="close-btn" onclick="closeModal()">Close Project</button>
+            <button class="close-btn" onclick="closeModal()">✕ Close</button>
             <div id="modal-body">
                 <!-- Content injected via JS -->
             </div>
@@ -569,6 +571,10 @@
                             
                             <div class="image-grid">
                                 ${imagesHtml}
+                            </div>
+
+                            <div class="mt-24 pt-10 border-t border-white/10 text-center pb-8">
+                                <button class="btn-primary" onclick="closeModal()">✕ Close</button>
                             </div>
                         </div>
                     </div>
