@@ -333,6 +333,32 @@
             padding-left: 2rem;
         }
 
+        /* System Status Graph Canvas */
+        #system-graph-container {
+            width: 100%;
+            height: 250px;
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #system-graph-container canvas {
+            display: block;
+        }
+
+        .status-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: var(--accent-cyan);
+            z-index: 10;
+            pointer-events: none;
+        }
+
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #222; }
@@ -664,6 +690,7 @@
                 category: "Luxury Women’s Apparel",
                 sub: "More than just fashion, Dreamweaver is about the psychology of confidence.",
                 detail: "We specialize in custom-tailored apparel that emphasizes a 'sexy' state of mind without sacrificing ease of wear. Every garment is a testament to high-quality craftsmanship and material integrity. Our approach integrates supply-chain precision with aesthetic fluidity to create pieces that are both timeless and structurally innovative.",
+                // To replace with S3 images, change the src attribute below
                 heroImg: "https://via.placeholder.com/1920x800/111/444?text=DREAMWEAVER_HERO_S3",
                 images: [
                     "https://via.placeholder.com/600x400/222/555?text=FABRIC_DETAIL_S3",
@@ -698,13 +725,30 @@
             cyphermonk: {
                 title: "CypherMonk",
                 category: "Advanced Cryptography & Blockchain",
-                sub: "The frontier of digital security.",
-                detail: "CypherMonk leads R&D in Post-Quantum Cryptography (PQC) and secure communication protocols. We develop blockchain applications for fintech and beyond. Our dedicated storefront features Icarus Cards (BTC cold storage) and professional mining hardware.",
-                heroImg: "https://via.placeholder.com/1920x800/111/0ff?text=CYPHERMONK_HERO_S3",
+                sub: "The frontier of digital security & Cold Storage.",
+                // Updated detail with Icarus info and Buy button
+                detail: `
+                    <p class="mb-6">CypherMonk leads R&D in Post-Quantum Cryptography (PQC) and secure communication protocols. We are proud to feature <strong>Icarus Cards</strong>, the premier offline Bitcoin crypto-wallets designed for security, durability, and simplicity.</p>
+                    
+                    <div class="bg-white/5 p-6 border border-white/10 mb-8">
+                        <h4 class="text-cyan-400 font-bold uppercase tracking-widest text-xs mb-4">Icarus Cards Specification</h4>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-400 marker:text-cyan-400">
+                            <li><strong>Offline Security:</strong> Keys generated offline; all sensitive data deleted post-printing.</li>
+                            <li><strong>Durable Build:</strong> High-quality PVC with extra lamination protection.</li>
+                            <li><strong>Zero Skill Required:</strong> Scan QR to fund, peel hologram to redeem.</li>
+                            <li><strong>Collectible Editions:</strong> Limited runs featuring artwork from top crypto artists.</li>
+                        </ul>
+                    </div>
+
+                    <a href="https://icarus-cards.eu/" target="_blank" class="inline-block bg-cyan-400 text-black font-bold py-4 px-8 text-xs uppercase tracking-[0.2em] hover:bg-white transition shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]">
+                        Buy Icarus Cards Now
+                    </a>
+                `,
+                heroImg: "https://via.placeholder.com/1920x800/111/0ff?text=ICARUS_CARDS_HERO_S3",
                 images: [
-                    "https://via.placeholder.com/600x400/222/555?text=HARDWARE_WALLET_S3",
-                    "https://via.placeholder.com/600x400/222/555?text=ENCRYPTION_NODE_S3",
-                    "https://via.placeholder.com/600x400/222/555?text=MINING_RIG_S3"
+                    "https://via.placeholder.com/600x400/222/555?text=ICARUS_LIMITED_EDITION_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=BITCOIN_COLD_STORAGE_S3",
+                    "https://via.placeholder.com/600x400/222/555?text=HOLOGRAM_SECURITY_S3"
                 ]
             }
         };
@@ -720,7 +764,19 @@
             },
             system_status: {
                 title: "System Status",
-                body: "All Systems Operational.<br><br>Node Tokyo-01: ONLINE (99.99% Uptime)<br>Node NY-Hub: ONLINE (99.99% Uptime)<br>Node Zurich-Prime: ONLINE (100% Uptime)<br><br>No active incidents reported in the last 24 hours."
+                body: `<div id="system-graph-container">
+                        <div class="status-overlay">
+                            > REAL-TIME NODE METRICS<br>
+                            <span style="color:#00ffff">> TOKYO-01: <span id="node-0-val">--</span>%</span><br>
+                            <span style="color:#ff00ff">> NY-HUB: <span id="node-1-val">--</span>%</span><br>
+                            <span style="color:#ffffff">> ZURICH: <span id="node-2-val">--</span>%</span>
+                        </div>
+                       </div>
+                       All Systems Operational.<br><br>
+                       <span style="color:#00ffff">●</span> Node Tokyo-01: ONLINE (99.99% Uptime)<br>
+                       <span style="color:#ff00ff">●</span> Node NY-Hub: ONLINE (99.99% Uptime)<br>
+                       <span style="color:#ffffff">●</span> Node Zurich-Prime: ONLINE (100% Uptime)<br><br>
+                       No active incidents reported in the last 24 hours.`
             },
             api: {
                 title: "Developer API",
@@ -739,6 +795,136 @@
                 body: "We use essential cookies for system session management and security verification. Advanced telemetry cookies are used to optimize 3D rendering performance based on your hardware capabilities. You may opt-out of non-essential cookies at any time."
             }
         };
+
+        // Graph Animation Variables
+        let statusAnimationId;
+        let graphData = [[], [], []];
+        const maxDataPoints = 100;
+        const nodeColors = ['#00ffff', '#ff00ff', '#ffffff'];
+        const nodeFillColors = ['rgba(0, 255, 255, 0.1)', 'rgba(255, 0, 255, 0.1)', 'rgba(255, 255, 255, 0.1)'];
+
+        function initStatusGraph() {
+            const container = document.getElementById('system-graph-container');
+            if(!container) return;
+            
+            // Cleanup existing canvas if any
+            const existingCanvas = container.querySelector('canvas');
+            if(existingCanvas) existingCanvas.remove();
+
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+            
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            const ctx = canvas.getContext('2d');
+            
+            const valSpans = [
+                document.getElementById('node-0-val'),
+                document.getElementById('node-1-val'),
+                document.getElementById('node-2-val')
+            ];
+
+            // Initialize Data for 3 nodes
+            graphData = [
+                new Array(maxDataPoints).fill(45), // Tokyo
+                new Array(maxDataPoints).fill(30), // NY
+                new Array(maxDataPoints).fill(60)  // Zurich
+            ];
+
+            function render() {
+                // 1. Update Data for all 3 nodes
+                for(let n=0; n<3; n++) {
+                    let series = graphData[n];
+                    let lastVal = series[series.length - 1];
+                    // Different mean values for visual separation
+                    let mean = n === 0 ? 50 : (n === 1 ? 35 : 65);
+                    let change = (Math.random() - 0.5) * 5 + (mean - lastVal) * 0.05; 
+                    
+                    if(Math.random() > 0.98) change += (Math.random() > 0.5 ? 10 : -10); 
+                    
+                    let newVal = Math.max(5, Math.min(95, lastVal + change));
+                    
+                    series.shift();
+                    series.push(newVal);
+                    
+                    if(valSpans[n] && Math.random() > 0.8) {
+                        valSpans[n].innerText = Math.round(newVal).toString().padStart(2, '0');
+                    }
+                }
+
+                // 2. Clear Screen
+                ctx.fillStyle = '#050505';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 3. Draw Grid
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.lineWidth = 1;
+                const gridSizeX = canvas.width / 10;
+                const gridSizeY = canvas.height / 5;
+                
+                ctx.beginPath();
+                for(let x = 0; x <= canvas.width; x += gridSizeX) {
+                    ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+                }
+                for(let y = 0; y <= canvas.height; y += gridSizeY) {
+                    ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+                }
+                ctx.stroke();
+
+                // 4. Draw Graph Lines
+                const stepX = canvas.width / (maxDataPoints - 1);
+                
+                // Use screen blending for overlapping glowing lines
+                ctx.globalCompositeOperation = 'screen';
+
+                for(let n=0; n<3; n++) {
+                    const series = graphData[n];
+                    const color = nodeColors[n];
+                    const fillColor = nodeFillColors[n];
+
+                    // Draw Fill Gradient
+                    ctx.beginPath();
+                    ctx.moveTo(0, canvas.height);
+                    for(let i=0; i<series.length; i++) {
+                        const x = i * stepX;
+                        const y = canvas.height - (series[i] / 100 * canvas.height);
+                        ctx.lineTo(x, y);
+                    }
+                    ctx.lineTo(canvas.width, canvas.height);
+                    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                    gradient.addColorStop(0, fillColor);
+                    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+
+                    // Draw Line Stroke
+                    ctx.beginPath();
+                    for(let i=0; i<series.length; i++) {
+                        const x = i * stepX;
+                        const y = canvas.height - (series[i] / 100 * canvas.height);
+                        if(i===0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 10;
+                    ctx.stroke();
+                }
+                
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.shadowBlur = 0;
+
+                // 5. Draw Scanline
+                const time = Date.now() * 0.002;
+                const scanY = (time % 10) / 10 * canvas.height;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+                ctx.fillRect(0, scanY, canvas.width, 2);
+
+                statusAnimationId = requestAnimationFrame(render);
+            }
+            render();
+        }
 
         function openSolution(id) {
             const data = solutionData[id];
@@ -774,7 +960,10 @@
                             </div>
                         </div>
                         <div class="lg:col-span-8">
-                            <p class="text-gray-400 leading-loose text-lg">${data.detail}</p>
+                            <!-- Changed from <p> to <div> to support rich HTML content in details -->
+                            <div class="text-gray-400 leading-loose text-lg">
+                                ${data.detail}
+                            </div>
                             <div class="image-grid">
                                 ${imagesHtml}
                             </div>
@@ -810,11 +999,22 @@
             `;
             document.getElementById('text-modal').classList.add('active');
             document.body.style.overflow = 'hidden';
+
+            // Initialize graph only if system status is opened
+            if(type === 'system_status') {
+                setTimeout(initStatusGraph, 100); // Slight delay to ensure DOM is ready
+            }
         }
 
         function closeTextModal() {
             document.getElementById('text-modal').classList.remove('active');
             document.body.style.overflow = 'auto';
+            
+            // Stop animation if running
+            if(statusAnimationId) {
+                cancelAnimationFrame(statusAnimationId);
+                statusAnimationId = null;
+            }
         }
 
         function showPage(pageId) {
