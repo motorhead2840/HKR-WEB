@@ -1,0 +1,24 @@
+{
+  "name": "hkr-corp-mainframe",
+  "version": "1.2.0",
+  "description": "HKR Corp | The Architecture of Tomorrow - Global Infrastructure & Icarus Store",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "deploy": "echo 'Deployment managed by AWS Amplify CI/CD' && exit 0"
+  },
+  "keywords": [
+    "hkr-corp",
+    "icarus-cards",
+    "bitcoin",
+    "threejs",
+    "cyberpunk",
+    "aws-amplify"
+  ],
+  "author": "HKR Corp",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
