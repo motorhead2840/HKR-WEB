@@ -1,21 +1,24 @@
-name: Deploy to Lightsail
+name: Deploy to AWS S3
+
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main  # Verify this matches your branch name (main vs master)
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Deploy to Server
-        uses: appleboy/scp-action@master
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          host: ${{ secrets.LIGHTSAIL_IP }}
-          username: ${{ secrets.LIGHTSAIL_USERNAME }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
-          source: "index.html" # Add other files/folders here if needed
-          target: "/var/www/html"
-          strip_components: 0
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # <--- CHANGE THIS to your bucket's region (e.g., ap-south-1)
+
+      - name: Deploy to S3
+        # This syncs your repo to the bucket, deleting old files that were removed from the repo
+        run: aws s3 sync . s3://hkrcorp --delete --exclude ".git/*" --exclude ".github/*"
